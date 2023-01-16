@@ -1,4 +1,4 @@
-package go_mt_craw
+package main
 
 import (
 	"fmt"
@@ -9,8 +9,10 @@ import (
 func main() {
 	resp, err := soup.Get("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html?technicianId=1000000")
 	if err != nil {
+		fmt.Println(err)
 		os.Exit(1)
 	}
+	fmt.Println(resp)
 	doc := soup.HTMLParse(resp)
 	links := doc.Find("div", "id", "comicLinks").FindAll("a")
 	for _, link := range links {
