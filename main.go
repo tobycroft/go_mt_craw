@@ -2,20 +2,24 @@ package main
 
 import (
 	"fmt"
-	"github.com/anaskhan96/soup"
-	"os"
+	Net "github.com/tobycroft/TuuzNet"
 )
 
 func main() {
-	resp, err := soup.Get("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html?technicianId=1000000")
+	query := map[string]interface{}{
+		"technicianId": 1000000,
+	}
+	ua := map[string]string{
+		"User-Agent": "PostmanRuntime/7.30.0"}
+	resp, err := Net.Get("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html", query, ua, nil)
 	if err != nil {
 		fmt.Println(err)
-		os.Exit(1)
+		return
 	}
 	fmt.Println(resp)
-	doc := soup.HTMLParse(resp)
-	links := doc.Find("div", "id", "comicLinks").FindAll("a")
-	for _, link := range links {
-		fmt.Println(link.Text(), "| Link :", link.Attrs()["href"])
-	}
+	//doc := soup.HTMLParse(resp)
+	//links := doc.Find("div", "id", "comicLinks").FindAll("a")
+	//for _, link := range links {
+	//	fmt.Println(link.Text(), "| Link :", link.Attrs()["href"])
+	//}
 }
