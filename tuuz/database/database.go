@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/Unknwon/goconfig"
 	_ "github.com/go-sql-driver/mysql"
+	"github.com/tobycroft/gorose-pro"
 	"log"
 	"main.go/config/db_conf"
 	"main.go/tuuz/Log"

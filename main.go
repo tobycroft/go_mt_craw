@@ -57,12 +57,38 @@ func main() {
 		fmt.Println(bff.ResponseData[0].Data.Data.AttrValues.PhotoURL)
 		fmt.Println(bff.ResponseData[0].Data.Data.ShopIDForFe)
 
-		fmt.Println(bff.ResponseData[1].Data.Data.Share.Title)
+		fmt.Println(bff.ResponseData[0].Data.Data.Share.Title)
 		fmt.Println(bff.ResponseData[0].Data.Data.Share.Desc)
 		fmt.Println(bff.ResponseData[0].Data.Data.Share.URL)
 
-		db := tuuz.Db()
+		db := tuuz.Db().Table("mt_craw")
+		db.Where("techid", bff.ResponseData[0].Data.Data.TechnicianID)
+		ret, err := db.Find()
+		if err != nil {
+			panic(err)
+		}
+		if len(ret) > 0 {
+			panic("已经存在")
+		}
 
+		db = tuuz.Db().Table("mt_craw")
+		data := map[string]interface{}{
+			"name":         bff.ResponseData[0].Data.Data.AttrValues.Name,
+			"skills":       strings.Join(bff.ResponseData[0].Data.Data.AttrValues.Skills, ","),
+			"workyears":    bff.ResponseData[0].Data.Data.AttrValues.WorkYears,
+			"workyearsstr": bff.ResponseData[0].Data.Data.AttrValues.WorkYearsStr,
+			"techid":       bff.ResponseData[0].Data.Data.TechnicianID,
+			"photo":        bff.ResponseData[0].Data.Data.AttrValues.PhotoURL,
+			"shopidforfe":  bff.ResponseData[0].Data.Data.ShopIDForFe,
+			"title":        bff.ResponseData[0].Data.Data.Share.Title,
+			"desc":         bff.ResponseData[0].Data.Data.Share.Desc,
+			"url":          bff.ResponseData[0].Data.Data.Share.URL,
+		}
+		db.Data(data)
+		_, err = db.Insert()
+		if err != nil {
+			panic(err)
+		}
 	})
 
 	c.Visit("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html?technicianId=11728812")
