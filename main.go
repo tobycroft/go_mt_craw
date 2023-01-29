@@ -9,22 +9,6 @@ import (
 )
 
 func main() {
-	//query := map[string]interface{}{
-	//	"technicianId": 1000000,
-	//}
-	//ua := map[string]string{
-	//	"User-Agent": "PostmanRuntime/7.30.0"}
-	//resp, err := Net.Get("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html", query, ua, nil)
-	//if err != nil {
-	//	fmt.Println(err)
-	//	return
-	//}
-	//fmt.Println(resp)
-	////doc := soup.HTMLParse(resp)
-	////links := doc.Find("div", "id", "comicLinks").FindAll("a")
-	////for _, link := range links {
-	////	fmt.Println(link.Text(), "| Link :", link.Attrs()["href"])
-	////}
 
 	c := colly.NewCollector()
 
@@ -92,6 +76,79 @@ func main() {
 	})
 
 	c.Visit("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html?technicianId=11728812")
+
+}
+
+func craw(tech_id string) error {
+
+	c := colly.NewCollector()
+
+	// Find and visit all links
+	c.OnHTML("a[href]", func(e *colly.HTMLElement) {
+		e.Request.Visit(e.Attr("href"))
+	})
+
+	c.OnRequest(func(r *colly.Request) {
+		fmt.Println("Visiting", r.URL)
+	})
+
+	c.OnResponse(func(e *colly.Response) {
+		body := string(e.Body)
+		bodys1 := strings.Split(body, "window.__INITIAL_STATE__ = ")
+		bodys2 := bodys1[len(bodys1)-1]
+		bodys3 := strings.Split(bodys2, "</script>")
+		bodys4 := bodys3[0]
+		s6 := strings.TrimSpace(bodys4)
+		var datas Data
+		jsoniter.UnmarshalFromString(s6, &datas)
+
+		var bff BffData
+		jsoniter.UnmarshalFromString(datas.BffData[0], &bff)
+		fmt.Println(bff.ResponseData[0].Data.Data.AttrValues.Name)
+		fmt.Println(bff.ResponseData[0].Data.Data.AttrValues.Skills)
+		fmt.Println(bff.ResponseData[0].Data.Data.AttrValues.WorkYears)
+		fmt.Println(bff.ResponseData[0].Data.Data.AttrValues.WorkYearsStr)
+		fmt.Println(bff.ResponseData[0].Data.Data.TechnicianID)
+		fmt.Println(bff.ResponseData[0].Data.Data.AttrValues.PhotoURL)
+		fmt.Println(bff.ResponseData[0].Data.Data.ShopIDForFe)
+
+		fmt.Println(bff.ResponseData[0].Data.Data.Share.Title)
+		fmt.Println(bff.ResponseData[0].Data.Data.Share.Desc)
+		fmt.Println(bff.ResponseData[0].Data.Data.Share.URL)
+
+		db := tuuz.Db().Table("mt_craw")
+		db.Where("techid", bff.ResponseData[0].Data.Data.TechnicianID)
+		ret, err := db.Find()
+		if err != nil {
+			return
+		}
+		if len(ret) > 0 {
+			return
+		}
+
+		db = tuuz.Db().Table("mt_craw")
+		data := map[string]interface{}{
+			"name":         bff.ResponseData[0].Data.Data.AttrValues.Name,
+			"skills":       strings.Join(bff.ResponseData[0].Data.Data.AttrValues.Skills, ","),
+			"workyears":    bff.ResponseData[0].Data.Data.AttrValues.WorkYears,
+			"workyearsstr": bff.ResponseData[0].Data.Data.AttrValues.WorkYearsStr,
+			"techid":       bff.ResponseData[0].Data.Data.TechnicianID,
+			"photo":        bff.ResponseData[0].Data.Data.AttrValues.PhotoURL,
+			"shopidforfe":  bff.ResponseData[0].Data.Data.ShopIDForFe,
+			"title":        bff.ResponseData[0].Data.Data.Share.Title,
+			"desc":         bff.ResponseData[0].Data.Data.Share.Desc,
+			"url":          bff.ResponseData[0].Data.Data.Share.URL,
+		}
+		db.Data(data)
+		_, err = db.Insert()
+		if err != nil {
+			return
+		}
+		return
+	})
+
+	c.Visit("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html?technicianId=" + tech_id)
+	return nil
 
 }
 
