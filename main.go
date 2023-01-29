@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"github.com/gocolly/colly/v2"
 	jsoniter "github.com/json-iterator/go"
+	"main.go/tuuz"
 	"strings"
 )
 
@@ -59,6 +60,9 @@ func main() {
 		fmt.Println(bff.ResponseData[1].Data.Data.Share.Title)
 		fmt.Println(bff.ResponseData[0].Data.Data.Share.Desc)
 		fmt.Println(bff.ResponseData[0].Data.Data.Share.URL)
+
+		db := tuuz.Db()
+
 	})
 
 	c.Visit("https://g.meituan.com/domino/craftsman-app/craftsman-detail.html?technicianId=11728812")
